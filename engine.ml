@@ -5,7 +5,8 @@ type t = {
     renderer : Sdl.renderer;
     cell_size : int;
     width : int;
-    height : int
+    height : int;
+    mutable paused : bool
   }
 
 let init w h title =
@@ -15,7 +16,8 @@ let init w h title =
      match Sdl.create_window ~w:w ~h:h title Sdl.Window.windowed with
      | `Error e -> Sdl.log "Create window error: %s" e; exit 1
      | `Ok window ->
-        match Sdl.create_renderer ~flags:Sdl.Renderer.(accelerated + presentvsync) window with
+        let flgs = Sdl.Renderer.(accelerated + presentvsync) in
+        match Sdl.create_renderer ~flags:flgs window with
         | `Error e -> Sdl.log "Create renderer error: %s" e; exit 1
         | `Ok renderer ->
            let cell_size = 10 in
@@ -23,7 +25,8 @@ let init w h title =
              renderer;
              cell_size;
              width = w / cell_size;
-             height = h / cell_size }
+             height = h / cell_size;
+             paused = false }
 
 let clear eng =
   let r = eng.renderer in
@@ -46,7 +49,7 @@ let quit eng =
 
 let event = Sdl.Event.create ()
 
-let rec loop draw click eng =
+let rec loop draw update click eng =
   begin
     if Sdl.poll_event (Some event) then
       match Sdl.Event.(enum (get event typ)) with
@@ -59,8 +62,12 @@ let rec loop draw click eng =
          let y = Sdl.Event.(get event mouse_button_y) in
          Sdl.log "Click: %d, %d" x y;
          click eng (x / eng.cell_size) (y / eng.cell_size)
+      | `Key_down ->
+         let key = Sdl.Event.(get event keyboard_keycode) in
+         if key = Char.code ' ' then eng.paused <- not eng.paused
       | _ -> ()
   end;
+  if not eng.paused then update eng;
   draw eng;
   Sdl.render_present eng.renderer;
-  loop draw click eng
+  loop draw update click eng
