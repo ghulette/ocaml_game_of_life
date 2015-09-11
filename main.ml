@@ -13,4 +13,4 @@ let draw eng =
 let () =
   let eng = Engine.init 640 480 "Conway's Game of Life" in
   Engine.clear eng;
-  Engine.loop draw update click eng
+  Engine.loop draw update click (ref false) eng
