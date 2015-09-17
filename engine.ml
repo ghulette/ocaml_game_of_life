@@ -8,24 +8,20 @@ type t = {
     height : int
   }
 
+let (>>=) m f = match m with `Error e -> `Error e | `Ok x -> f x
+let (>>) m f = match m with `Error e -> `Error e | `Ok _ -> f ()
+let return x = `Ok x
+
 let init w h title =
-  match Sdl.init Sdl.Init.(video + events) with
-  | `Error e -> Sdl.log "Init error: %s" e; exit 1
-  | `Ok () ->
-     match Sdl.create_window ~w:w ~h:h title Sdl.Window.windowed with
-     | `Error e -> Sdl.log "Create window error: %s" e; exit 1
-     | `Ok window ->
-        let flgs = Sdl.Renderer.(accelerated + presentvsync) in
-        match Sdl.create_renderer ~flags:flgs window with
-        | `Error e -> Sdl.log "Create renderer error: %s" e; exit 1
-        | `Ok renderer ->
-           let cell_size = 10 in
-           { window;
-             renderer;
-             cell_size;
-             width = w / cell_size;
-             height = h / cell_size
-           }
+  Sdl.init Sdl.Init.(video + events) >>= fun () ->
+  Sdl.create_window ~w:w ~h:h title Sdl.Window.windowed >>= fun window ->
+  let flgs = Sdl.Renderer.(accelerated + presentvsync) in
+  Sdl.create_renderer ~flags:flgs window >>= fun renderer ->
+  let cell_size = 10 in
+  return { window; renderer; cell_size;
+           width = w / cell_size;
+           height = h / cell_size
+         }
 
 let clear eng =
   let r = eng.renderer in
@@ -48,7 +44,13 @@ let quit eng =
 
 let event = Sdl.Event.create ()
 
-let rec loop draw update click paused eng =
+type info = {
+    draw : t -> unit;
+    update : t -> unit;
+    click : t -> int -> int -> unit
+  }
+
+let rec loop inf paused eng =
   begin
     while Sdl.poll_event (Some event) do
       match Sdl.Event.(enum (get event typ)) with
@@ -58,14 +60,14 @@ let rec loop draw update click paused eng =
       | `Mouse_button_down ->
          let x = Sdl.Event.(get event mouse_button_x) in
          let y = Sdl.Event.(get event mouse_button_y) in
-         click eng (x / eng.cell_size) (y / eng.cell_size)
+         inf.click eng (x / eng.cell_size) (y / eng.cell_size)
       | `Key_down ->
          let k = Sdl.Event.(get event keyboard_keycode) in
          if k = Sdl.K.space then paused := not !paused
       | _ -> ()
     done
   end;
-  if not !paused then update eng else Sdl.delay 100l;
-  draw eng;
+  if not !paused then inf.update eng else Sdl.delay 100l;
+  inf.draw eng;
   Sdl.render_present eng.renderer;
-  loop draw update click paused eng
+  loop inf paused eng
