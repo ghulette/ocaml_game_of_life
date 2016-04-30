@@ -1,6 +1,6 @@
 SOURCES = engine.ml life.mli life.ml main.ml
 RESULT = life
-PACKS = tsdl
+PACKS = result tsdl
 
 all : native-code
 

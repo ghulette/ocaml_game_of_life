@@ -1,3 +1,4 @@
+open Result
 open Tsdl
 
 type t = {
@@ -8,9 +9,9 @@ type t = {
     height : int
   }
 
-let (>>=) m f = match m with `Error e -> `Error e | `Ok x -> f x
-let (>>) m f = match m with `Error e -> `Error e | `Ok _ -> f ()
-let return x = `Ok x
+let (>>=) m f = match m with Error e -> Error e | Ok x -> f x
+let (>>) m f = match m with Error e -> Error e | Ok _ -> f ()
+let return x = Ok x
 
 let init w h title =
   Sdl.init Sdl.Init.(video + events) >>= fun () ->

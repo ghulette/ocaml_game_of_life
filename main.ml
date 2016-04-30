@@ -1,3 +1,5 @@
+open Result
+
 let earth = ref (Life.make_random_world 64 48)
 
 let click eng x y =
@@ -12,9 +14,9 @@ let draw eng =
 
 let () =
   match Engine.init 640 480 "Conway's Game of Life" with
-  | `Ok eng ->
+  | Ok eng ->
      Engine.clear eng;
      let inf = Engine.({ draw; update; click }) in
      Engine.loop inf (ref false) eng
-  | `Error e ->
+  | Error e ->
      exit 1
