@@ -1,0 +1,29 @@
+opam-version: "2.0"
+maintainer: "Geoff Hulette <geoff@hulette.net>"
+authors: ["Geoff Hulette <geoff@hulette.net>"]
+
+homepage: "https://github.com/ghulette/ocaml-game-of-life"
+bug-reports: "https://github.com/ghulette/ocaml-game-of-life/issues"
+dev-repo: "git+https://github.com/ghulette/ocaml-game-of-life.git"
+version: "dev"
+
+license: "MIT"
+
+synopsis: "Conway's Game of Life in OCaml"
+
+description: """Conway's Game of Life written in OCaml and using SDL via the
+tsdl binding. Simple but maybe helpful for getting started with graphics/games
+in OCaml."""
+
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+
+run-test: ["dune" "runtest" "-p" name]
+
+depends: [
+  "dune" { >= "3.0" }
+  "ocaml" { >= "4.13" }
+  "tsdl" { >= "0.9.8" }
+]
