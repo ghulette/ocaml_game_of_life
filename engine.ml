@@ -1,3 +1,4 @@
+open Containers
 open Tsdl
 
 type t = {
@@ -8,8 +9,7 @@ type t = {
   height : int;
 }
 
-let ( >>= ) m f = match m with Error e -> Error e | Ok x -> f x
-let return x = Ok x
+open Result.Infix
 
 let init w h title =
   Sdl.init Sdl.Init.(video + events) >>= fun () ->
@@ -17,7 +17,7 @@ let init w h title =
   let flgs = Sdl.Renderer.(accelerated + presentvsync) in
   Sdl.create_renderer ~flags:flgs window >>= fun renderer ->
   let cell_size = 10 in
-  return
+  Ok
     {
       window;
       renderer;
